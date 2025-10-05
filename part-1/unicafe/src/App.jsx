@@ -11,7 +11,11 @@ const Stastics = ({ good, neutral, bad }) => {
   const total = good + neutral + bad;
   const average = (good * 1 + neutral * 0 + bad * -1) / total;
   const positive = (good / (total || 1)) * 100;
-  return (
+  if(good===0&&neutral===0&&bad===0){
+    return <p>No feed back given</p>
+  }
+  else{
+return (
     <div>
       <p>good : {good}</p>
       <p>neutral: {neutral}</p>
@@ -19,8 +23,11 @@ const Stastics = ({ good, neutral, bad }) => {
       <p>all :{good + neutral + bad}</p>
       <p>average:{average} </p>
       <p>positive:{positive}% </p>
-    </div>
-  );
+    </div>);
+  }
+  
+  
+  
 };
 const App = () => {
   // save clicks of each button to its own state

@@ -12,9 +12,6 @@ const Part = ({ name, exercise }) => {
   );
 };
 const Content = ({ parts }) => {
-  {
-    console.log(parts.id);
-  }
   return (
     <div>
       {parts.map((part) => (
@@ -23,12 +20,19 @@ const Content = ({ parts }) => {
     </div>
   );
 };
+const Total=({total})=>{
+const result = total.reduce((sum,total)=>{return sum+total.exercises },0)
+
+return  <h2>total {result} of exercises</h2>
+}
+
 
 const Course = ({ course }) => {
   return (
     <div>
       <Header courseName={course.name} />
       <Content parts={course.parts} />
+      <Total total={course.parts}/>
     </div>
   );
 };

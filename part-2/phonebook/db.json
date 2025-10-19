@@ -21,16 +21,6 @@
       "number": "321"
     },
     {
-      "name": "ram",
-      "number": "",
-      "id": "7f1f"
-    },
-    {
-      "name": "hi",
-      "number": "1",
-      "id": "863c"
-    },
-    {
       "id": "ee00",
       "name": "Hello",
       "number": "321"
@@ -61,9 +51,9 @@
       "number": "123"
     },
     {
-      "id": "0f1d",
-      "name": "fsc",
-      "number": "0976"
+      "id": "e315",
+      "name": "Arto Hellas ",
+      "number": ""
     }
   ]
 }

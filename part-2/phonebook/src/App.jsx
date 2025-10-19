@@ -11,21 +11,28 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState({ message: null, type: "" });
 
+ 
   useEffect(() => {
-    personService.getAll().then((response) => setPersons(response));
+    personService
+      .getAll()
+      .then((response) => setPersons(response))
+      .catch(() => {
+        showNotification("Failed to fetch contacts from server", "error");
+      });
   }, []);
+
+ 
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification({ message: null, type: "" });
+    }, 4000);
+  };
 
   const handleNameChange = (event) => setNewName(event.target.value);
   const handleNumberChange = (event) => setNewNumber(event.target.value);
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
 
- 
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification({ message: null, type: "" }), 3000);
-  };
-
-  // Add or update person
   const addPerson = (event) => {
     event.preventDefault();
 
@@ -48,11 +55,15 @@ const App = () => {
                 p.id !== existingPerson.id ? p : updatedPerson
               )
             );
+            showNotification(
+              `Updated ${updatedPerson.name}'s number`,
+              "success"
+            );
             setNewName("");
             setNewNumber("");
-            showNotification(`Updated ${updatedPerson.name}'s number`, "success");
           })
-          .catch(() => {
+          .catch((error) => {
+            // ❌ Handle backend 404 or network error
             showNotification(
               `Information of ${existingPerson.name} has already been removed from server`,
               "error"
@@ -61,16 +72,20 @@ const App = () => {
           });
       }
     } else {
-      personService.create(nameObject).then((createdPerson) => {
-        setPersons(persons.concat(createdPerson));
-        setNewName("");
-        setNewNumber("");
-        showNotification(`Added ${createdPerson.name}`, "success");
-      });
+      personService
+        .create(nameObject)
+        .then((createdPerson) => {
+          setPersons(persons.concat(createdPerson));
+          setNewName("");
+          setNewNumber("");
+          showNotification(`Added ${createdPerson.name}`, "success");
+        })
+        .catch(() => {
+          showNotification("Failed to add person", "error");
+        });
     }
   };
 
- 
   const handleRemove = (id, name) => {
     const confirmDelete = window.confirm(`Delete ${name}?`);
     if (confirmDelete) {
@@ -81,8 +96,9 @@ const App = () => {
           showNotification(`Deleted ${name}`, "success");
         })
         .catch(() => {
+          // ❌ If the person was already deleted
           showNotification(
-            `The person '${name}' was already deleted from server`,
+            `Information of ${name} has already been removed from server`,
             "error"
           );
           setPersons(persons.filter((p) => p.id !== id));
@@ -97,7 +113,6 @@ const App = () => {
   return (
     <div>
       <h1>Phonebook</h1>
-
       <Notification message={notification.message} type={notification.type} />
 
       <Filter value={searchTerm} onChange={handleSearchChange} />
@@ -115,7 +130,7 @@ const App = () => {
       <ul>
         {personsToShow.map((person) => (
           <li key={person.id}>
-            {person.name} {person.number}
+            {person.name} {person.number}{" "}
             <button onClick={() => handleRemove(person.id, person.name)}>
               delete
             </button>

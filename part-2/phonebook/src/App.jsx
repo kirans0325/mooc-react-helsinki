@@ -1,54 +1,49 @@
-import { useState, useEffect } from "react"
-import axios from "axios"
-import CountryList from "./components/CountryList"
-import CountryDetails from "./components/CountryDetails"
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import Country from './components/Country'
 
 const App = () => {
   const [countries, setCountries] = useState([])
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState('')
   const [filtered, setFiltered] = useState([])
 
-  // Fetch all countries once
   useEffect(() => {
-    axios.get("https://studies.cs.helsinki.fi/restcountries/api/all")
+    axios.get('https://studies.cs.helsinki.fi/restcountries/api/all')
       .then(response => setCountries(response.data))
   }, [])
 
-  // Filter whenever search changes
   useEffect(() => {
-    if (search.trim() === "") {
-      setFiltered([])
-      return
-    }
-    const results = countries.filter(country =>
-      country.name.common.toLowerCase().includes(search.toLowerCase())
+    setFiltered(
+      countries.filter(c =>
+        c.name.common.toLowerCase().includes(search.toLowerCase())
+      )
     )
-    setFiltered(results)
   }, [search, countries])
 
   return (
     <div>
-      <h1>Country Information</h1>
-      find countries:{" "}
+      <h1>Country Finder</h1>
       <input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Type a country name"
+        placeholder="Search for a country"
       />
 
-      {filtered.length > 10 && (
-        <p>Too many matches, specify another filter</p>
-      )}
+      {filtered.length > 10 && <p>Too many matches, specify another filter.</p>}
 
-      {filtered.length > 1 && filtered.length <= 10 && (
-        <CountryList
-          countries={filtered}
-          onShow={(countryName) => setSearch(countryName)}
-        />
+      {filtered.length <= 10 && filtered.length > 1 && (
+        <ul>
+          {filtered.map(country => (
+            <li key={country.cca3}>
+              {country.name.common}{' '}
+              <button onClick={() => setFiltered([country])}>show</button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {filtered.length === 1 && (
-        <CountryDetails country={filtered[0]} />
+        <Country country={filtered[0]} />
       )}
     </div>
   )

@@ -1,52 +1,144 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import Country from './components/Country'
+import { useState, useEffect } from "react";
+import Filter from "./components/Filter";
+import PersonForm from "./components/PersonForm";
+import personService from "./services/notes";
+import Notification from "./components/Notification";
 
 const App = () => {
-  const [countries, setCountries] = useState([])
-  const [search, setSearch] = useState('')
-  const [filtered, setFiltered] = useState([])
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState("");
+  const [newNumber, setNewNumber] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [notification, setNotification] = useState({ message: null, type: "" });
 
+ 
   useEffect(() => {
-    axios.get('https://studies.cs.helsinki.fi/restcountries/api/all')
-      .then(response => setCountries(response.data))
-  }, [])
+    personService
+      .getAll()
+      .then((response) => setPersons(response))
+      .catch(() => {
+        showNotification("Failed to fetch contacts from server", "error");
+      });
+  }, []);
 
-  useEffect(() => {
-    setFiltered(
-      countries.filter(c =>
-        c.name.common.toLowerCase().includes(search.toLowerCase())
-      )
-    )
-  }, [search, countries])
+ 
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification({ message: null, type: "" });
+    }, 4000);
+  };
+
+  const handleNameChange = (event) => setNewName(event.target.value);
+  const handleNumberChange = (event) => setNewNumber(event.target.value);
+  const handleSearchChange = (event) => setSearchTerm(event.target.value);
+
+  const addPerson = (event) => {
+    event.preventDefault();
+
+    const existingPerson = persons.find(
+      (p) => p.name.toLowerCase() === newName.toLowerCase()
+    );
+    const nameObject = { name: newName, number: newNumber };
+
+    if (existingPerson) {
+      const confirmUpdate = window.confirm(
+        `${newName} is already added to phonebook, replace the old number with a new one?`
+      );
+
+      if (confirmUpdate) {
+        personService
+          .update(existingPerson.id, nameObject)
+          .then((updatedPerson) => {
+            setPersons(
+              persons.map((p) =>
+                p.id !== existingPerson.id ? p : updatedPerson
+              )
+            );
+            showNotification(
+              `Updated ${updatedPerson.name}'s number`,
+              "success"
+            );
+            setNewName("");
+            setNewNumber("");
+          })
+          .catch((error) => {
+            // ❌ Handle backend 404 or network error
+            showNotification(
+              `Information of ${existingPerson.name} has already been removed from server`,
+              "error"
+            );
+            setPersons(persons.filter((p) => p.id !== existingPerson.id));
+          });
+      }
+    } else {
+      personService
+        .create(nameObject)
+        .then((createdPerson) => {
+          setPersons(persons.concat(createdPerson));
+          setNewName("");
+          setNewNumber("");
+          showNotification(`Added ${createdPerson.name}`, "success");
+        })
+        .catch(() => {
+          showNotification("Failed to add person", "error");
+        });
+    }
+  };
+
+  const handleRemove = (id, name) => {
+    const confirmDelete = window.confirm(`Delete ${name}?`);
+    if (confirmDelete) {
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter((p) => p.id !== id));
+          showNotification(`Deleted ${name}`, "success");
+        })
+        .catch(() => {
+          // ❌ If the person was already deleted
+          showNotification(
+            `Information of ${name} has already been removed from server`,
+            "error"
+          );
+          setPersons(persons.filter((p) => p.id !== id));
+        });
+    }
+  };
+
+  const personsToShow = persons.filter((person) =>
+    person.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
-      <h1>Country Finder</h1>
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search for a country"
+      <h1>Phonebook</h1>
+      <Notification message={notification.message} type={notification.type} />
+
+      <Filter value={searchTerm} onChange={handleSearchChange} />
+
+      <h3>Add a new</h3>
+      <PersonForm
+        onSubmit={addPerson}
+        newName={newName}
+        handleNameChange={handleNameChange}
+        newNumber={newNumber}
+        handleNumberChange={handleNumberChange}
       />
 
-      {filtered.length > 10 && <p>Too many matches, specify another filter.</p>}
-
-      {filtered.length <= 10 && filtered.length > 1 && (
-        <ul>
-          {filtered.map(country => (
-            <li key={country.cca3}>
-              {country.name.common}{' '}
-              <button onClick={() => setFiltered([country])}>show</button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {filtered.length === 1 && (
-        <Country country={filtered[0]} />
-      )}
+      <h3>Numbers</h3>
+      <ul>
+        {personsToShow.map((person) => (
+          <li key={person.id}>
+            {person.name} {person.number}{" "}
+            <button onClick={() => handleRemove(person.id, person.name)}>
+              delete
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

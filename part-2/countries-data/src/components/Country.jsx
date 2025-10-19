@@ -3,7 +3,6 @@ import axios from 'axios'
 
 const api_key = import.meta.env.VITE_SOME_KEY
 
-
 const Country = ({ country }) => {
   const [weather, setWeather] = useState(null)
 

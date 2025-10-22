@@ -1,7 +1,9 @@
 const express = require("express");
+const morgan = require('morgan')  
 const app = express();
 
 app.use(express.json());
+morgan('tiny')
 
 let persons = [
   {
@@ -89,6 +91,9 @@ if(persons.find(p=>p.name.toLowerCase()===body.name.toLowerCase())){
   console.log(person)
   response.json(person)
 })
+morgan.token("body", (req) => JSON.stringify(req.body));
+app.use(morgan(":method :url :status :res[content-length] - :response-time ms :body"));
+
 
 const PORT = 3001;
 app.listen(PORT, () => {

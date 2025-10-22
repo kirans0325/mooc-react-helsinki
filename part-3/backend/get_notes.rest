@@ -1,11 +1,11 @@
 ### Get all persons
-GET http://localhost:3001/api/persons
+GET http://localhost:3001/api/persons̥
 
 ### Add new person
-POST http://localhost:3001/api/persons
-Content-Type: application/json
+POST http://localhost:3001/api/p̥erson̥s̥̥ HTTP/1.1̥̥
+Content-Type: application/json̥
 
 {
-  "name": "Feto Hellas",
+  "name": "Feto Haris",
   "number": "050-123456"
 }

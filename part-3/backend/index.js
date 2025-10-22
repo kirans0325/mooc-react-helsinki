@@ -23,6 +23,11 @@ let persons = [
       "id": "4",
       "name": "Mary Poppendieck", 
       "number": "39-23-6423122"
+    },
+    { 
+      "id": "5",
+      "name": "Ram k", 
+      "number": "40-23-6423122"
     }
 ]
 
@@ -37,13 +42,17 @@ app.get('/api/persons',(req,res)=>{
 app.get('/info',(req,res)=>{
   const noOfPersons=persons.length-2
    const time = new Date()
-  res.send(`<p>phonebook has info of ${noOfPersons} people
-    ${time}
+  res.send(`<p>phonebook has info of ${noOfPersons} people </p>
+   <p> ${time}
     <p>`)
-
-
 })
 
+app.get('/api/persons/:id',(req,res)=>{
+  const id = req.params.id
+  const person=persons.find(p=>p.id==id)
+  person?res.json(person):res.status(404).end()
+
+})
 
 // app.get('/api/persons', (request, response) => {
 //   const id = request.params.id;

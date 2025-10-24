@@ -63,7 +63,7 @@ const App = () => {
             setNewNumber("");
           })
           .catch((error) => {
-            // ❌ Handle backend 404 or network error
+   
             showNotification(
               `Information of ${existingPerson.name} has already been removed from server`,
               "error"
@@ -96,7 +96,7 @@ const App = () => {
           showNotification(`Deleted ${name}`, "success");
         })
         .catch(() => {
-          // ❌ If the person was already deleted
+        
           showNotification(
             `Information of ${name} has already been removed from server`,
             "error"

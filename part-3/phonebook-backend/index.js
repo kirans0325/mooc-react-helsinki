@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 
 const persons = [
@@ -9,25 +9,40 @@ const persons = [
   { id: 5, name: "Mallesh Pot", number: "40-23-6473122" },
 ];
 
-app.get('/api/persons/:id', (req, res) => {
-    const id =Number(req.params.id)
-    const person = persons.find(p=>p.id === id)
-    person?res.json(person):res.send(404).end()
+app.get("/api/persons/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const person = persons.find((p) => p.id === id);
+  person ? res.json(person) : res.send(404).end();
 });
 
-app.get('/info',(req,res)=>{
-    const total = persons.length;
+app.get("/info", (req, res) => {
+  const total = persons.length;
   const date = new Date();
-      res.send(`
+  res.send(`
     <p>Phonebook has info for ${total} people</p>
     <p>${date}</p>
   `);
-})
+});
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id =Number(req.params.id)
-    const person = persons.find(p=>p.id !== id)
-    person?res.json(person):res.send(404).end()
+app.delete("/api/persons/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const person = persons.find((p) => p.id !== id);
+  person ? res.json(person) : res.send(404).end();
+});
+
+app.use(express.json());
+
+app.post('/api/persons', (req, res) => {
+  const body = req.body;
+
+  const newPerson = {
+    id: Math.floor(Math.random() * 10000),
+    name: body.name,
+    number: body.number,
+  };
+
+  persons.concat(newPerson);
+  res.json(newPerson);
 });
 
 const PORT = 3001;

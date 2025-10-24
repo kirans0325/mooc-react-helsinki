@@ -6,11 +6,13 @@ const persons = [
   { id: 2, name: "Ada Lovelace", number: "39-44-5323523" },
   { id: 3, name: "Dan Abramov", number: "12-43-234345" },
   { id: 4, name: "Mary Poppendieck", number: "39-23-6423122" },
+  { id: 5, name: "Mallesh Pot", number: "40-23-6473122" },
 ];
 
-app.get('/api/persons', (req, res) => {
-  res.json(persons);
-  console.log(persons)
+app.get('/api/persons/:id', (req, res) => {
+    const id =Number(req.params.id)
+    const person = persons.find(p=>p.id === id)
+    person?res.json(person):res.send(404).end()
 });
 
 app.get('/info',(req,res)=>{

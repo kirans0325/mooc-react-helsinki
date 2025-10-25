@@ -1,7 +1,9 @@
 const express = require("express");
 const app = express();
 const morgan = require('morgan')
+const cors = require('cors')
 
+app.use(cors())
 app.use(morgan('tiny'))
 
 morgan.token('body', (req) => {
@@ -25,6 +27,10 @@ app.get("/api/persons/:id", (req, res) => {
   const person = persons.find((p) => p.id === id);
   person ? res.json(person) : res.send(404).end();
 });
+app.get("/api/persons", (req, res) => {
+  res.json(persons);
+});
+
 
 app.get("/info", (req, res) => {
   const total = persons.length;

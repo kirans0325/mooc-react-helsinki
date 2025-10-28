@@ -1,72 +1,90 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
 const app = express();
-const morgan = require('morgan')
-app.use(express.static('dist'))
 
-app.use(morgan('tiny'))
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static("dist"));
 
-morgan.token('body', (req) => {
-  if (req.method === 'POST') {
-    return JSON.stringify(req.body)
-  }
-  return ''
-})
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+// Get password from command-line argument
+const password = process.argv[2];
+if (!password) {
+  console.error(" Missing MongoDB password argument");
+  process.exit(1);
+}
 
-const persons = [
-  { id: 1, name: "Arto Hellas", number: "040-123456" },
-  { id: 2, name: "Ada Lovelace", number: "39-44-5323523" },
-  { id: 3, name: "Dan Abramov", number: "12-43-234345" },
-  { id: 4, name: "Mary Poppendieck", number: "39-23-6423122" },
-  { id: 5, name: "Mallesh Pot", number: "40-23-6473122" },
-];
+// MongoDB connection
+const url = `mongodb+srv://nid:${password}@cluster0.enrt5wv.mongodb.net/phoneBook?retryWrites=true&w=majority&appName=Cluster0`;
 
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((p) => p.id === id);
-  person ? res.json(person) : res.send(404).end();
+mongoose.set("strictQuery", false);
+mongoose
+  .connect(url)
+  .then(() => console.log(" Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err.message));
+
+// Schema and Model
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
 });
-app.get("/api/persons", (req, res) => {
-  res.json(persons);
+const Person = mongoose.model("Person", personSchema);
+
+// Routes
+
+// Get all persons
+app.get("/api/persons", (req, res, next) => {
+  Person.find({})
+    .then((persons) => res.json(persons))
+    .catch((error) => next(error));
 });
 
+// Get person by ID
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id)
+    .then((person) => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
+});
 
-app.get("/info", (req, res) => {
-  const total = persons.length;
+// Delete person by ID
+app.delete("/api/persons/:id", (req, res, next) => {
+  Person.findByIdAndDelete(req.params.id)
+    .then(() => res.status(204).end())
+    .catch((error) => next(error));
+});
+
+// Add new person
+app.post("/api/persons", (req, res) => {
+    const { name, number } = req.body;
+    if (!name || !number) {
+      return res.status(400).json({ error: "name or number missing" });
+    }
+    const newPerson = new Person({ name, number });
+    const savedPerson = newPerson.save();
+    res.json(savedPerson);
+  
+});
+
+// Info route
+app.get("/info", async (req, res) => {
+  const count = await Person.countDocuments({});
   const date = new Date();
   res.send(`
-    <p>Phonebook has info for ${total} people</p>
+    <p>Phonebook has info for ${count} people</p>
     <p>${date}</p>
   `);
 });
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((p) => p.id !== id);
-  person ? res.json(person) : res.send(404).end();
-});
-
-app.use(express.json());
-
-app.post('/api/persons', (req, res) => {
-  const body = req.body;
-    if(!body.name && !body.number){
-        return res.send(400).json({ error: 'name or number missing' });
-    }
-     if (persons.find(p => p.name === body.name)) {
-    return res.status(400).json({ error: 'name must be unique' });
-  }
-  const newPerson = {
-    id: Math.floor(Math.random() * 10000),
-    name: body.name,
-    number: body.number,
-  };
-
-  persons.concat(newPerson);
-  res.json(newPerson);
-});
-
-const PORT = 3001;
+// Server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

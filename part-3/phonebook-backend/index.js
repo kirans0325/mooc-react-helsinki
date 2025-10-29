@@ -1,90 +1,57 @@
+require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const Person = require('./models/persons');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static("dist"));
 
-// Get password from command-line argument
-const password = process.argv[2];
-if (!password) {
-  console.error(" Missing MongoDB password argument");
-  process.exit(1);
-}
 
-// MongoDB connection
-const url = `mongodb+srv://nid:${password}@cluster0.enrt5wv.mongodb.net/phoneBook?retryWrites=true&w=majority&appName=Cluster0`;
-
-mongoose.set("strictQuery", false);
-mongoose
-  .connect(url)
-  .then(() => console.log(" Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err.message));
-
-// Schema and Model
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-});
-const Person = mongoose.model("Person", personSchema);
-
-// Routes
-
-// Get all persons
 app.get("/api/persons", (req, res, next) => {
   Person.find({})
     .then((persons) => res.json(persons))
-    .catch((error) => next(error));
+    .catch(next);
 });
 
-// Get person by ID
 app.get("/api/persons/:id", (req, res, next) => {
   Person.findById(req.params.id)
     .then((person) => {
-      if (person) {
-        res.json(person);
-      } else {
-        res.status(404).end();
-      }
+      if (person) res.json(person);
+      else res.status(404).end();
     })
-    .catch((error) => next(error));
+    .catch(next);
 });
 
-// Delete person by ID
 app.delete("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
     .then(() => res.status(204).end())
-    .catch((error) => next(error));
+    .catch(next);
 });
 
-// Add new person
-app.post("/api/persons", (req, res) => {
-    const { name, number } = req.body;
-    if (!name || !number) {
-      return res.status(400).json({ error: "name or number missing" });
-    }
-    const newPerson = new Person({ name, number });
-    const savedPerson = newPerson.save();
-    res.json(savedPerson);
-  
+app.post("/api/persons", (req, res, next) => {
+  const { name, number } = req.body;
+  if (!name || !number) {
+    return res.status(400).json({ error: "name or number missing" });
+  }
+
+  const newPerson = new Person({ name, number });
+  newPerson
+    .save()
+    .then((savedPerson) => res.json(savedPerson))
+    .catch(next);
 });
 
-// Info route
-app.get("/info", async (req, res) => {
-  const count = await Person.countDocuments({});
-  const date = new Date();
-  res.send(`
-    <p>Phonebook has info for ${count} people</p>
-    <p>${date}</p>
-  `);
-});
+// // Error handler
+// app.use((error, req, res, next) => {
+//   console.error("Error:", error.message);
+//   if (error.name === "CastError") {
+//     return res.status(400).json({ error: "malformatted id" });
+//   }
+//   res.status(500).json({ error: "internal server error" });
+// });
 
-// Server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

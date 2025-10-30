@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const Person = require('./models/persons');
+const Person = require("./models/persons");
 
 const app = express();
 
@@ -12,13 +12,13 @@ app.use(express.static("dist"));
 
 app.get("/api/persons", (req, res, next) => {
   Person.find({})
-    .then((persons) => res.json(persons))
+    .then(persons => res.json(persons))
     .catch(next);
 });
 
 app.get("/api/persons/:id", (req, res, next) => {
   Person.findById(req.params.id)
-    .then((person) => {
+    .then(person => {
       if (person) res.json(person);
       else res.status(404).end();
     })
@@ -40,18 +40,30 @@ app.post("/api/persons", (req, res, next) => {
   const newPerson = new Person({ name, number });
   newPerson
     .save()
-    .then((savedPerson) => res.json(savedPerson))
+    .then(savedPerson => res.json(savedPerson))
     .catch(next);
 });
 
-// // Error handler
-// app.use((error, req, res, next) => {
-//   console.error("Error:", error.message);
-//   if (error.name === "CastError") {
-//     return res.status(400).json({ error: "malformatted id" });
-//   }
-//   res.status(500).json({ error: "internal server error" });
-// });
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: "unknown endpoint" });
+};
+app.use(unknownEndpoint);
+
+
+const errorHandler = (error, req, res, next) => {
+  console.error("Error:", error.message);
+
+  if (error.name === "CastError") {
+    return res.status(400).json({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return res.status(400).json({ error: error.message });
+  }
+
+  res.status(500).json({ error: "internal server error" });
+};
+app.use(errorHandler);
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

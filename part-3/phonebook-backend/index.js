@@ -8,6 +8,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("dist"));
+const requestLogger = (req, res, next) => {
+  console.log(`${req.method} ${req.path} - ${JSON.stringify(req.body)}`)
+  next()
+}
+app.use(requestLogger)
 
 // GET all persons
 app.get("/api/persons", (req, res, next) => {
@@ -26,7 +31,7 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch(next);
 });
 
-// DELETE person by ID
+// DELETE person by ID route
 app.delete("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
     .then(() => res.status(204).end())

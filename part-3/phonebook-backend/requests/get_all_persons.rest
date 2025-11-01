@@ -1,4 +1,5 @@
 GET http://localhost:3001/api/persons/68ff88544b8469c1e52c61e1 HTTP/1.1
+    Content-Type: application/json
     {
     "name": "Dan Bravo",
     "number": "1243234345"

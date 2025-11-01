@@ -16,7 +16,7 @@ mongoose
 
 const personSchema = new mongoose.Schema({
   name: String,
-  number: String, // ✅ capital 'S' fixed here
+  number: String,
 });
 
 personSchema.set("toJSON", {

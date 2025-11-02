@@ -44,11 +44,17 @@ const App = () => {
   // 🔹 Toggle importance
   const toggleImportance = (id) => {
     const note = notes.find((n) => n.id === id);
+    if (!note) {
+    console.error("Note not found for id:", id);
+    return;
+  }
+  console.log("Toggling note:", note);
     const updatedNote = { ...note, important: !note.important };
 
     noteService
       .update(id, updatedNote)
       .then((returnedNote) => {
+        console.log("Updated:", returnedNote);
         setNotes(notes.map((n) => (n.id !== id ? n : returnedNote)));
         showNotification(
           `Marked as ${returnedNote.important ? "important" : "not important"}`

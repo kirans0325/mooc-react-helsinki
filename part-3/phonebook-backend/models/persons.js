@@ -14,11 +14,29 @@ mongoose
     console.log("error connecting to MongoDB:", error.message);
   });
 
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-});
+const phoneValidator = [
+  {
+    validator: function (v) {
+      
+      if (!v || v.length < 5) return false;
+      return /^\d{2,3}-\d+$/.test(v);
+    },
+    message: props => `${props.value} is not a valid phone number! Format must be 09-1234567`
+  }
+];
 
+const personSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, "Name is required"],
+    minLength: [3, "Name must be at least 3 characters long"],
+  },
+  number: {
+    type: String,
+    required: [true, "Phone number is required"],
+    validate: phoneValidator,
+  },
+});
 personSchema.set("toJSON", {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();

@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --watch index.js"
+    "test": "node --test",
+    "dev": "node --watch index.js",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
@@ -14,6 +15,7 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "lodash": "^4.17.21",
     "mongoose": "^8.19.3"
   }
 }
